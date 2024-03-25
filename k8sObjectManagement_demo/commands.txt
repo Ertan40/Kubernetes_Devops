@@ -1,0 +1,31 @@
+Demo with kubectl: Object Management (how to manage objects with the help of kubectl or CLI with K8s cluster)
+
+mkdir k8sObjectManagement
+
+cd k8sObjectManagement
+
+echo "test" > pod.yml 
+
+type pod.yml
+
+notepad pod.yml # after filling out the pod.yml file 
+
+kubectl create -f pod.yml
+
+kubectl api-resources # in order to display all resources which kubernetes supports
+
+kubectl get po
+
+kubectl get pods draining-node-test-pod
+
+kubectl get pods -n kube-system
+
+kubectl get pods draining-node-test-pod -o wide # in order to get information  about this pod
+
+kubectl get pods draining-node-test-pod -o json #in json format > kubectl describe pods draining-node-test-pod for yaml -o yml
+
+kubectl exec draining-node-test-pod -c nginx -- cat /etc/nginx/nginx.conf # exists within the container (data from the running container)
+
+kubectl delete pods  draining-node-test-pod
+
+kubectl get po
