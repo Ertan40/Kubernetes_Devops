@@ -29,3 +29,4 @@ kubectl exec draining-node-test-pod -c nginx -- cat /etc/nginx/nginx.conf # exis
 kubectl delete pods  draining-node-test-pod
 
 kubectl get po
+
