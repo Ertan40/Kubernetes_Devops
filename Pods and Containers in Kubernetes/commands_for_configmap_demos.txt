@@ -91,3 +91,30 @@ root@configmap-posix-demo:/usr/src/app# printenv     ### in order to display all
 NODE_VERSION=8.11.3
 HOSTNAME=configmap-posix-demo
 KUBERNETES_PORT_443_TCP_PORT=443
+
+***** Demo with  Pods and Containers: "nginx-config-file-demo"*****
+
+access minikube: minikube ssh > sudo apt update > sudo apt install apache2-utils > ab -V > exit
+
+htpasswd -c .htpasswd user 
+ls -a 
+
+cat .htpasswd
+ 
+kubectl create secret generic nginx-htpasswd --from-file .htpasswd
+ 
+kubectl get secrets
+
+kubectl describe secrets nginx-htpasswd 
+
+rm -rf .htpasswd  
+
+vi nginx.conf 
+
+kubectl create configmap nginx-config-file --from-file nginx.conf
+
+kubectl describe configmap nginx-config-file
+
+vi nginx-pod.yml > kubectl apply -f nginx-pod.yml > kubectl get pods -o wide > curl 172.17.0.5 
+
+curl -u user:test123 172.17.0.5 
