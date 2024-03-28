@@ -1,0 +1,93 @@
+***** Demo with  Pods and Containers: "manage app config using env variables demo"*****
+
+cd Pods and Containers in Kubernetes
+
+echo "test" > example-configmap.yml 
+
+type example-configmap.yml
+
+notepad example-configmap.yml # after filling out the example-configmap.yml file 
+
+kubectl apply -f example-configmap.yml
+
+kubectl get configmaps   # afterwards tye following commands in case you'd like to encode: echo -n 'admin' | base64  and echo -n 'adminpassword' | base64
+
+kubectl apply -f example-secret.yml
+
+kubectl get secrets
+
+kubectl apply -f configmap-env-demo.yml
+
+kubectl get pods
+
+kubectl exec configmap-env-demo -it -- sh
+/ # ls
+bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var
+/ #
+/ # echo $PROPERTIES_FILE_NAME
+user-interface.properties
+/ # echo $SECRET_USERNAME
+YWRtaW4=
+/ # printenv
+PLAYER_LIVES=5
+KUBERNETES_SERVICE_PORT=443   # and all info will be displayed
+exit
+
+***** Demo with  Pods and Containers: "manage app config using mount volume demo"*****
+
+cd Pods and Containers in Kubernetes
+
+echo "test" > configmap-vol-demo.yml 
+
+type configmap-vol-demo.yml
+
+notepad configmap-vol-demo.yml # after filling out the example-configmap.yml file 
+
+kubectl apply -f configmap-vol-demo.yml
+
+kubectl exec configmap-vol-demo -it -- sh
+/ # ls
+bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var
+/ # cd /etc/config/configMap
+/etc/config/configMap # ls
+base.properties            player_lives               properties_file_name       user-interface.properties
+/etc/config/configMap # cat user-interface.properties
+color.good=purple
+color.bad=yellow
+allow.textmode=true
+/etc/config/configMap # cd ..
+/etc/config # pwd
+/etc/config
+/etc/config # ls
+configMap  secret
+/etc/config # cd secret
+/etc/config/secret # ls
+password  username
+/etc/config/secret # cat password
+YWRtaW5wYXNzd29yZA==/etc/config/secret #
+
+***** Demo with  Pods and Containers: "configmap-posix-demo"*****
+kubectl apply -f example-posix-configMap.yml
+
+kubectl get configmap
+
+kubectl describe configmap player-posix-demo
+
+kubectl apply -f configmap-posix-demo.yml
+
+kubectl describe pod configmap-posix-demo
+
+C:>kubectl get pods
+NAME                   READY   STATUS    RESTARTS      AGE
+configmap-env-demo     1/1     Running   2 (17m ago)   21h
+configmap-posix-demo   1/1     Running   0             5m41s
+configmap-vol-demo     1/1     Running   0             51m 
+
+>kubectl exec configmap-posix-demo -it -- /bin/bash
+root@configmap-posix-demo:/usr/src/app# ls
+Dockerfile  node_modules  package-lock.json  package.json  server.js
+root@configmap-posix-demo:/usr/src/app#
+root@configmap-posix-demo:/usr/src/app# printenv     ### in order to display all env variables
+NODE_VERSION=8.11.3
+HOSTNAME=configmap-posix-demo
+KUBERNETES_PORT_443_TCP_PORT=443
