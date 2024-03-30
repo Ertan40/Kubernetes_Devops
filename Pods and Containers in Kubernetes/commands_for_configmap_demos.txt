@@ -9,17 +9,11 @@ type example-configmap.yml
 notepad example-configmap.yml # after filling out the example-configmap.yml file 
 
 kubectl apply -f example-configmap.yml
-
 kubectl get configmaps   # afterwards tye following commands in case you'd like to encode: echo -n 'admin' | base64  and echo -n 'adminpassword' | base64
-
 kubectl apply -f example-secret.yml
-
 kubectl get secrets
-
 kubectl apply -f configmap-env-demo.yml
-
 kubectl get pods
-
 kubectl exec configmap-env-demo -it -- sh
 / # ls
 bin    dev    etc    home   lib    media  mnt    opt    proc   root   run    sbin   srv    sys    tmp    usr    var
@@ -98,21 +92,14 @@ access minikube: minikube ssh > sudo apt update > sudo apt install apache2-utils
 
 htpasswd -c .htpasswd user 
 ls -a 
-
 cat .htpasswd
- 
 kubectl create secret generic nginx-htpasswd --from-file .htpasswd
- 
 kubectl get secrets
-
 kubectl describe secrets nginx-htpasswd 
 
 rm -rf .htpasswd  
-
 vi nginx.conf 
-
 kubectl create configmap nginx-config-file --from-file nginx.conf
-
 kubectl describe configmap nginx-config-file
 
 vi nginx-pod.yml > kubectl apply -f nginx-pod.yml > kubectl get pods -o wide > curl 172.17.0.5 
@@ -121,28 +108,26 @@ curl -u user:test123 172.17.0.5
 
 ***** Demo with  Pods and Containers: "manage containers resources-demo"*****
 kubectl apply -f request_limit.yml
-
 kubectl get pods -o wide
-
 kubectl delete -f request_limit.yml
-
 kubectl apply -f request_limit.yml
-
 kubectl get pods -o wide
-
 kubectl delete -f request_limit.yml
 
 ***** Demo with  Pods and Containers: "liveness & startup probe-demo"*****
 kubectl apply -f request_limit.yml
-
 kubectl get pods -o wide
-
 kubectl apply -f request_limit.yml
-
 kubectl describe pod liveness-probe
-
 kubectl delete -f liveness-hc.yml
-
 kubectl apply -f startup-hc.yml
 kubectl get pods -o wide
 kubectl get pods -o wide
+
+
+***** Demo with  Pods and Containers: "multi containers-demo"*****
+kubectl apply -f multi-container.yml
+kubectl get pods -o wide
+curl 10.244.0.21     ## Hello from the Secondary container
+kubectl describe pod two-containers
+kubectl delete -f multi-container.yml 
