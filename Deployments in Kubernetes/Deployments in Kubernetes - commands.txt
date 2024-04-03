@@ -1,0 +1,81 @@
+***** Deployments in Kubernetes - commands *****
+kubectl apply -f replication_controller.yml
+kubectl get replicationcontroller/alipne-box-replicationcontroller
+kubectl get pods -o wide
+kubectl delete pod alipne-box-replicationcontroller-fs8mr
+kubectl get pods -o wide   # as soon as deleted or for some reason crashed, replication controller automatically will create a new pod and will maintain the state of your app
+kubectl get replicationcontroller/alipne-box-replicationcontroller
+NAME                               DESIRED   CURRENT   READY   AGE
+alipne-box-replicationcontroller   3         3         3       10m
+kubectl scale --replicas=6 replicationcontroller/alipne-box-replicationcontroller
+kubectl get replicationcontroller/alipne-box-replicationcontroller
+NAME                               DESIRED   CURRENT   READY   AGE
+alipne-box-replicationcontroller   6         6         6       12m
+kubectl get pods -o wide
+kubectl scale --replicas=2 replicationcontroller/alipne-box-replicationcontroller
+kubectl get pods -o wide
+kubectl get replicationcontroller/alipne-box-replicationcontroller
+NAME                               DESIRED   CURRENT   READY   AGE
+alipne-box-replicationcontroller   2         2         2       15m
+kubectl delete -f replication_controller.yml
+kubectl get pods -o wide
+
+***** replica-set-demo *****
+kubectl apply -f replica-set.yml
+kubectl get replicaset.apps/myapp-replicas
+kubectl get rs/myapp-replicas     # shortcut  and rc/ for rep controller
+kubectl describe rs/myapp-replicas
+kubectl get pods -o wide
+kubectl scale --replicas=10 rs/myapp-replicas
+kubectl get rs/myapp-replicas
+kubectl scale --replicas=10 rs/myapp-replicas
+kubectl get pods -o wide
+**** bare-pods****
+kubectl apply -f replicaSet_and_barePods.yml
+kubectl get rs/myapp-replicas
+kubectl get pods -o wide
+kubectl describe pod mypod1
+kubectl delete -f replicaSet_and_barePods.yml
+
+***** deployment-demo *****
+kubectl apply -f deployment.yml
+kubectl get deployment.apps/chef-server
+kubectl rollout status deployment.apps/chef-server
+kubectl describe deployment.apps/chef-server
+kubectl get rs
+NAME                     DESIRED   CURRENT   READY   AGE
+chef-server-7fdf9685f9   3         3         0       10m
+kubectl get pods --show-labels
+
+***** deployments-and-use-cases-demo *****
+# let's upgrade the chef image
+kubectl set image deployment/chef-server chef-server=chef/chefdk:4.9.10
+kubectl rollout status deployment.apps/chef-server
+kubectl get pods --show-labels
+kubectl get pods --show-labels
+kubectl rollout status deployment.apps/chef-server
+kubectl rollout history deployment.apps/chef-server
+kubectl set image deployment/chef-server chef-server=chef/chefdk:4.9.13 --record   # user record whenever you make changes or upgrades
+kubectl rollout status deployment.apps/chef-server
+kubectl rollout history deployment.apps/chef-server
+kubectl get pods --show-labels
+kubectl describe pod chef-server-585587c5dd-j7ltq
+kubectl rollout undo deployment.apps/chef-server   # how we can roll back the app
+kubectl rollout history deployment.apps/chef-server
+kubectl rollout undo deployment.apps/chef-server --to-revision=1
+kubectl rollout pause deployment.apps/chef-server   # will pause your deployment , if you want to make bulk changes on your deployment!!!
+kubectl set image deployment/chef-server chef-server=chef/chefdk:4.9.16 --record
+kubectl rollout status deployment.apps/chef-server   # not updating the replicas because we have paused the rollout 
+kubectl set image deployment/chef-server ubuntu=ubuntu:21.04 --record
+kubectl set resources deployment/chef-server -c=chef-server --limits=memory=250Mi
+kubectl rollout status deployment.apps/chef-server
+kubectl rollout history deployment.apps/chef-server
+kubectl rollout resume deployment.apps/chef-server   # will resume your deployment
+kubectl rollout status deployment.apps/chef-server
+kubectl get pods --show-labels
+kubectl rollout history deployment.apps/chef-server
+kubectl describe deployment.apps/chef-server
+kubectl scale deployment.apps/chef-server --replicas=5   ## if you want to scale your deployment
+kubectl rollout status deployment.apps/chef-server
+kubectl get pods --show-labels
+kubectl delete -f deployment.yml
