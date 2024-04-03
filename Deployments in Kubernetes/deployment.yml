@@ -8,11 +8,11 @@ spec:
   replicas: 3
   selector:
     matchLabels:
-      app: chef-server
+      app: chef-server # always needs to match
   template:
     metadata:
       labels:
-        app: chef-server
+        app: chef-server # always needs to match
     spec:
       containers:
         - name: chef-server
