@@ -1,0 +1,58 @@
+***** Kubernetes Networking demo - commands ***** 
+docker ps -a 
+docker start 2738f1d4ccb2
+minikube status
+minukube start
+minikube update-context
+minukube status
+kubectl get pods -o wide -n kube-system
+kubectl get services -o wide -n kube-system
+echo "apiVersion: v1" > pod-dns.yml   # vi pod-dns.yml
+notepad pod-dns.yml
+kubectl apply -f pod-dns.yml
+kubectl get pods -o wide
+kubectl exec -it nginx-nodename -- /bin/bash
+root@nginx-nodename:/# curl 10.244.0.69
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1> #### etc
+root@nginx-nodename:/# curl 10-244-0-69.default.pod.cluster.local
+exit
+kubectl exec -it frontend-app sh
+apk update   ### because i am using alpine and it has default package
+apk curl  # we need to install the curl
+curl --version
+# curl 10-244-0-69.default.pod.cluster.local
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>    #### this is the way how pods can communicate with eachother by DNS record
+
+**** network policies - demo ****
+echo apiVersion: v1 > network-policy-pod.yml
+notepad network-policy-pod.yml
+kubectl get nodes
+kubectl get namespaces   ### default, ertan40, kube-system etc
+kubectl create namespace network-policy
+kubectl get namespace --show-labels
+kubectl label namespace network-policy role=test-network-policy
+kubectl get namespace --show-labels
+kubectl apply -f network-policy-pod.yml
+kubectl get pods -o wide -n network-policy
+kubectl exec -n network-policy busybox-pod -- curl 192.168.36.195
+echo apiVersion: networking.k8s.io/v1 > network-policy.yml
+notepad network-policy.yml
+kubectl apply -f network-policy.yml
+kubectl get networkpolicy -n network-policy -o wide
+kubectl exec -n network-policy busybox-pod -- curl 192.168.36.195
+
