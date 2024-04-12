@@ -1,0 +1,44 @@
+***** Kubernetes Services demo - commands ***** 
+**** clusterIP service - demo ****
+docker ps -a 
+docker start 2738f1d4ccb2
+minukube start
+minikube update-context
+minukube status
+kubectl apply -f deployment.yml
+kubectl describe deployment.apps/nginx-server
+kubectl get pods -o wide
+kubectl get pods -o wide --show-labels
+kubectl apply -f clusterIp-service.yml   ## create service
+kubectl describe service/nginx-service
+curl nginx-service:8080   ## outside of the K8s network is not allowed!
+kubectl apply -f pod-svc-test.yml   ## create temperory pod
+kubectl exec pod-svc-test -- curl nginx-service:8080  ## now access to nginx is successful - way to create clusterIP kind of service
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0     55      0  0:00:11  0:00:11 --:--:--  600k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1> ....etc
+
+**** NodePort service - demo ****  ## will be able to access outside the K8s network
+kubectl apply -f nodeport-service.yml
+kubectl describe service/nginx-service-nodeport
+minikube ip
+kubectl exec pod-svc-test -- curl 192.168.49.2:30099  ## now access to nginx is successful - way to create nodeport kind of service
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0   153k      0 --:--:-- --:--:-- --:--:--  200k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title> etc......
