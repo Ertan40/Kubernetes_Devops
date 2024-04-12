@@ -42,3 +42,28 @@ kubectl exec pod-svc-test -- curl 192.168.49.2:30099  ## now access to nginx is 
 <html>
 <head>
 <title>Welcome to nginx!</title> etc......
+
+**** Discover services with DNS - demo ****  ## will be able to access outside the K8s network
+kubectl get services -o wide
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+kubernetes               ClusterIP   10.96.0.1       <none>        443/TCP        19d   <none>
+nginx-service            ClusterIP   10.97.162.14    <none>        8080/TCP       83m   app=frontend
+nginx-service-nodeport   NodePort    10.97.171.69    <none>        80:30099/TCP   58m   app=frontend
+kubectl get pods -o wide --show-labels
+kubectl exec pod-svc-test -- curl nginx-service:8080
+kubectl get namespaces --show-labels
+kubectl create namespace service-namespace    ## first create a namespace
+kubectl get namespaces --show-labels
+kubectl apply -f dns-service-pod.yml   ## then create svc-test-dns pod
+kubectl get pods -o wide --show-labels
+kubectl get pods -o wide --show-labels -n service-namespace
+kubectl exec pod-svc-test -- curl nginx-service:8080
+kubectl exec -n service-namespace svc-test-dns -- curl nginx-service:8080   
+kubectl exec -n service-namespace svc-test-dns -- curl nginx-service.default.svc.cluster.local:8080  # we can access via service DNS
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   615  100   615    0     0  92203      0 --:--:-- --:--:-- --:--:--  150k
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>   ### :) 
