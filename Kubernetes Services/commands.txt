@@ -67,3 +67,36 @@ kubectl exec -n service-namespace svc-test-dns -- curl nginx-service.default.svc
 <html>
 <head>
 <title>Welcome to nginx!</title>   ### :) 
+
+**** Ingress controller - demo ****  
+
+docker ps -a 
+docker start 2738f1d4ccb2
+minikube start
+minikube status
+kubectl apply -f nginx-deployment.yml
+kubectl get deployment
+kubectl describe deployment nginx-official-deployment
+kubectl apply -f nginx-deployment-service.yml
+kubectl apply -f magicalnginx-nginx-deployment.yml
+kubectl apply -f magicalnginx-deployment-service.yml
+kubectl get services
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes               ClusterIP   10.96.0.1       <none>        443/TCP        22d
+magical-nginx            NodePort    10.98.89.255    <none>        80:31304/TCP   2m18s
+nginx-official-service   NodePort    10.97.142.239   <none>        80:31303/TCP   5m5s
+minikube service magical-nginx --url
+http://127.0.0.1:56237
+curl http://127.0.0.1:56237
+minikube service nginx-official-service --url
+http://127.0.0.1:56381
+curl http://127.0.0.1:56381   ## both were successful basically in order to receive info I have to run within docker
+kubectl apply -f ingress-controller.yml
+kubectl describe ingress nginx-rules
+minikube ip
+curl 192.168.49.2 -H 'Host: nginx-official.example.com'  # will be successful if you are using cloud such as AWS or GPC   
+curl 192.168.49.2 -H 'Host: magical-nginx.example.com'
+
+#### additional info below: you can use the kubectl port-forward command to forward traffic from a local port to a port on the service within your Kubernetes cluster. This allows you to access the service using localhost and the forwarded port ####
+kubectl port-forward service/nginx-official-service 8080:80
+kubectl port-forward service/nginx-official-service 8080:80 & curl -H 'Host: magical-nginx.example.com' http://localhost:8080
