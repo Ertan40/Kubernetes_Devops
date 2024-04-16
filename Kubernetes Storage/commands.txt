@@ -36,3 +36,16 @@ root@redis-emptydir:/data/redis# kill 1
 kubectl get pod redis-emptydir --watch  ## in a separate terminal
 ### note: so it doesnt matter container is restarted or deleted but as long as the pod will persist the data which was defined with emptydir also will persist!! ###
 
+**** shared volume - demo **** 
+
+kubectl apply -f common-volume.yml
+kubectl get pod -o wide
+kubectl describe pod shared-multi-container
+kubectl exec -it shared-multi-container -- bash
+Defaulted container "nginx-container" out of: nginx-container, debian-container  ## output
+cd /usr/share/nginx/html
+root@shared-multi-container:/usr/share/nginx/html# ls
+index.html  ## output
+echo "Custom Statement" >> index.html  ## let's append
+cat index.html   ## nginx using the same file which has been writing by the debian container. Because they are sharing the shared volume
+exit
