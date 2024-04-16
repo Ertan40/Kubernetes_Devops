@@ -49,3 +49,34 @@ index.html  ## output
 echo "Custom Statement" >> index.html  ## let's append
 cat index.html   ## nginx using the same file which has been writing by the debian container. Because they are sharing the shared volume
 exit
+**** persistent volume - demo ****
+
+kubectl apply -f localhost-sc.yml   ## first create storage class
+kubectl describe storageclass.storage.k8s.io/local-storage
+kubectl apply -f my-persistent-volume.yml
+kubectl describe persistentvolume/my-persistent-vol
+kubectl get pv -o wide   ## output below:
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS    REASON   AGE    VOLUMEMODE
+my-persistent-vol   1Gi        RWO            Recycle          Available           local-storage            100s   Filesystem
+kubectl apply -f my-pvc.yml   ## it will use the existing persistent volume
+kubectl describe persistentvolumeclaim/my-pvc    
+kubectl get pv -o wide   ## output below
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS    REASON   AGE     VOLUMEMODE
+my-persistent-vol   1Gi        RWO            Recycle          Available           local-storage            8m22s   Filesystem
+kubectl get pvc -o wide   ## output below ## status is pending because, it is waiting for first consumer to be created before binding
+NAME     STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS    AGE     VOLUMEMODE
+my-pvc   Pending                                      local-storage   2m29s   Filesystem
+kubectl apply -f my-pv-pod.yml  ## let's create the resource
+kubectl get pv -o wide   ## as soon as we've created a resource on our PVC, STATUS and CLAIM changed
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS    REASON   AGE   VOLUMEMODE
+my-persistent-vol   1Gi        RWO            Recycle          Bound    default/my-pvc   local-storage            16m   Filesystem
+kubectl get pvc -o wide   ## output below:STATUS, VOLUME, CAPACITY and ACCESS MODES changed 
+NAME     STATUS   VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS    AGE   VOLUMEMODE
+my-pvc   Bound    my-persistent-vol   1Gi        RWO            local-storage   13m   Filesystem
+kubectl edit pvc my-pvc    ## edited storage from 100 to 200
+persistentvolumeclaim/my-pvc edited
+kubectl delete -f my-pv-pod.yml   ## first delete the pod
+kubectl delete -f my-pvc.yml
+kubectl get pv -o wide   ## STATUS again is available beacuse rec policy is recycle
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS    REASON   AGE   VOLUMEMODE
+my-persistent-vol   1Gi        RWO            Recycle          Available           local-storage            31m   Filesystem
