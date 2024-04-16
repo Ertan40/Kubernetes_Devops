@@ -1,11 +1,8 @@
 ***** Demo with  Pods and Containers: "manage app config using env variables demo"*****
 
 cd Pods and Containers in Kubernetes
-
 echo "test" > example-configmap.yml 
-
 type example-configmap.yml
-
 notepad example-configmap.yml # after filling out the example-configmap.yml file 
 
 kubectl apply -f example-configmap.yml
@@ -28,15 +25,10 @@ KUBERNETES_SERVICE_PORT=443   # and all info will be displayed
 exit
 
 ***** Demo with  Pods and Containers: "manage app config using mount volume demo"*****
-
 cd Pods and Containers in Kubernetes
-
 echo "test" > configmap-vol-demo.yml 
-
 type configmap-vol-demo.yml
-
 notepad configmap-vol-demo.yml # after filling out the example-configmap.yml file 
-
 kubectl apply -f configmap-vol-demo.yml
 
 kubectl exec configmap-vol-demo -it -- sh
@@ -62,13 +54,9 @@ YWRtaW5wYXNzd29yZA==/etc/config/secret #
 
 ***** Demo with  Pods and Containers: "configmap-posix-demo"*****
 kubectl apply -f example-posix-configMap.yml
-
 kubectl get configmap
-
 kubectl describe configmap player-posix-demo
-
 kubectl apply -f configmap-posix-demo.yml
-
 kubectl describe pod configmap-posix-demo
 
 C:>kubectl get pods
@@ -124,10 +112,22 @@ kubectl apply -f startup-hc.yml
 kubectl get pods -o wide
 kubectl get pods -o wide
 
-
 ***** Demo with  Pods and Containers: "multi containers-demo"*****
 kubectl apply -f multi-container.yml
 kubectl get pods -o wide
 curl 10.244.0.21     ## Hello from the Secondary container
 kubectl describe pod two-containers
 kubectl delete -f multi-container.yml 
+
+***** Demo with  Pods and Containers: "init container-demo"*****
+kubectl apply -f multi-container.yml
+kubectl get -f init-container.yml
+NAME              READY   STATUS     RESTARTS   AGE
+application-pod   0/1     Init:0/2   0          45s
+kubectl get services
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   6d19h
+kubectl get pod application-pod
+kubectl apply -f initContainer-dependency-service.yml   # create kubernetes services, myservice and mydb created and as soon as created
+kubectl get -f init-container.yml
+kubectl get -f initContainer-dependency-service.yml   
