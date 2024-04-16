@@ -1,0 +1,38 @@
+**** Kubernetes Storage - demo: commands **** 
+kubectl apply -f hostpath-volume-mount.yml   ## if you want to reuse the data or you want to work with the statefull app, these are the approach
+cd /var/tmp/
+ls
+cd ..
+cat /var/tmp/output.txt
+kubectl delete -f hostpath-volume-mount.yml
+
+### without hostpath 
+
+kubectl apply -f emptyDir-volume.yml
+kubectl get pods -o wide
+kubectl describe pod redis-emptydir
+kubectl exec -it redis-emptydir -- /bin/bash
+root@redis-emptydir:/data# cd /data/redis
+root@redis-emptydir:/data/redis# echo "Hello team, this file is created for testing >> testfile.txt"
+Hello team, this file is created for testing >> testfile.txt
+ls
+root@redis-emptydir:/data/redis# pwd
+/data/redis
+kubectl delete -f emptyDir-volume.yml
+kubectl apply -f emptyDir-volume.yml
+kubectl exec -it redis-emptydir -- /bin/bash
+root@redis-emptydir:/data# cd redis
+touch testfile2.txt
+ps -aux
+bash: ps: command not found   ### first install
+apt-get update
+apt-get install procps
+root@redis-emptydir:/data/redis# ps -aux
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND   ## output
+redis          1  0.1  0.1  55580 14836 ?        Ssl  07:42   0:00 redis-server *:6379
+root          21  0.0  0.0   4184  3328 pts/0    Ss   07:44   0:00 /bin/bash
+root         216  100  0.0   8056  3996 pts/0    R+   07:50   0:00 ps -aux
+root@redis-emptydir:/data/redis# kill 1
+kubectl get pod redis-emptydir --watch  ## in a separate terminal
+### note: so it doesnt matter container is restarted or deleted but as long as the pod will persist the data which was defined with emptydir also will persist!! ###
+
