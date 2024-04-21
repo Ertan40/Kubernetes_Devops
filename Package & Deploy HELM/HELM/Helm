@@ -1,0 +1,139 @@
+**** Helm - demo - commands****
+kubectl config view
+kubectl get nodes
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   27d   v1.28.3
+
+**** Helm work with Repos - commands ****
+helm repo list
+Error: no repositories to show   ##output
+helm repo add bitnami https://charts.bitnami.com/bitnami
+"bitnami" has been added to your repositories
+helm repo list
+NAME    URL  ##output
+bitnami https://charts.bitnami.com/bitnami
+helm repo add brigade https://brigadecore.github.io/charts
+"brigade" has been added to your repositories
+helm repo list
+NAME    URL
+bitnami https://charts.bitnami.com/bitnami
+brigade https://brigadecore.github.io/charts
+helm repo remove brigade
+helm repo list
+NAME    URL
+bitnami https://charts.bitnami.com/bitnami
+
+**** Helm Search - commands ****
+helm search repo mysql
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION   ## output
+bitnami/mysql           10.1.1          8.0.36          MySQL is a fast, reliable, scalable, and easy t...
+bitnami/phpmyadmin      16.0.1          5.2.1           phpMyAdmin is a free software tool written in P...
+bitnami/mariadb         18.0.2          11.3.2          MariaDB is an open source, community-developed ...
+bitnami/mariadb-galera  13.0.0          11.3.2          MariaDB Galera is a multi-primary database clus...
+helm repo add brigade https://brigadecore.github.io/charts
+helm repo list
+helm search repo nginx
+NAME                                    CHART VERSION   APP VERSION     DESCRIPTION ## output
+bitnami/nginx                           16.0.4          1.25.5          NGINX Open Source is a web server that can be a...
+bitnami/nginx-ingress-controller        11.1.0          1.10.0          NGINX Ingress Controller is an Ingress controll...
+bitnami/nginx-intel                     2.1.15          0.4.9           DEPRECATED NGINX Open Source for Intel is a lig...
+helm search hub nginx   ## it will search at https://artifacthub.io/  multiple repos available
+helm search hub nginx | wc -l   ## git bash or unix-like shell
+helm search hub nginx | Measure-Object -Line   ## powershell 185 in total
+
+**** Execute services using Helm - commands ****
+helm repo list
+helm repo add bitnami https://charts.bitnami.com/bitnami   ## add repository which can get from artifacthub.io
+helm install my-redis bitnami/redis --version 19.1.2
+kubectl get pods  
+kubectl get all   ## it will install all the resources. Without Helm we had to apply at least 10 yml files with K8s
+export REDIS_PASSWORD=$(kubectl get secret --namespace default my-redis -o jsonpath="{.data.redis-password}" | base64 -d)  ## from redis displayed info
+kubectl run --namespace default redis-client --restart='Never'  --env REDIS_PASSWORD=$REDIS_PASSWORD  --image docker.io/bitnami/redis:7.2.4-debian-12-r12 --command -- sleep infinity
+pod/redis-client created   ### output
+kubectl get pods 
+$ kubectl exec --tty -i redis-client  --namespace default -- bash  ## Use the following command to attach to the pod:
+I have no name!@redis-client:/$   ## output: inside redis
+### Connect using the Redis&reg; CLI:
+   REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli -h my-redis-master
+   REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli -h my-redis-replicas
+REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli -h my-redis-master   ## with this command inside the my-redis-master (redis is caching server)
+my-redis-master:6379>
+SET mykeys "Hello All"
+GET mykeys    ## output: "Hello All"
+exit
+REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli -h my-redis-replicas   ## inside the my-redis-replicas 
+GET mykeys    ## output: "Hello All"
+exit
+exit
+helm list  ## which we can see how many deployements made via Helm
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+my-redis        default         1               2024-04-21 16:03:47.3616043 +0300 EEST  deployed        redis-19.1.2    7.2.4
+
+helm install my-redis bitnami/redis --version 19.1.0  ## if I want to install higher or lower version i have to create namespace
+kubectl create namespace redis
+helm install my-redis bitnami/redis --version 19.1.0
+helm list  ## we see only one deployment
+helm list --all-namespaces  ## in order to dsplay all
+helm list -A   ## for similar result
+helm status my-redis   ### in case you didn't save the redis displayed info, then you can display
+helm status my-redis -n redis   ## I can check with namespace the second deployment info
+
+**** Provide Custom Values to Helm Chart - commands ****
+  
+helm list -A
+helm delete my-redis
+helm delete my-redis -n redis  ## with namespace
+kubectl get pods -A
+helm install my-mariadb bitnami/mariadb --version 18.0.2   ### got at https://artifacthub.io/packages/helm/bitnami/mariadb
+kubectl delete pod redis-client
+kubectl get pods
+helm status my-mariadb   ## I got the below command for the pass from displayed info  pass# 0rlTaTrV2w
+kubectl get secret --namespace default my-mariadb -o jsonpath="{.data.mariadb-root-password}" | base64 -d 
+kubectl run my-mariadb-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mariadb:11.3.2-debian-12-r1 --namespace default --command -- bash
+mysql -h my-mariadb.default.svc.cluster.local -uroot -p my_database
+mysql: Deprecated program name. It will be removed in a future release, use '/opt/bitnami/mariadb/bin/mariadb' instead
+Enter password:     ## use the pass that we got 
+MariaDB [my_database]>    ## after entering the pass we are inside 
+exit > exit
+kubectl create namespace database
+echo auth: > MariaDB_CustomValues.yml   ## I created yml file and followed the rules from Values schema reference
+helm install -n database --values MariaDB_CustomValues.yml my-mariadb bitnami/mariadb --version 18.0.2  ## using yml file
+helm status my-mariadb -n database   ## checking namespace 
+kubectl run my-mariadb-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mariadb:11.3.2-debian-12-r1 --namespace database --command -- bash
+## connection with client which is successful - Run a pod that you can use as a client:
+mysql -h my-mariadb.database.svc.cluster.local -uroot -p helm_training   ### which we created via yml file
+mysql: Deprecated program name. It will be removed in a future release, use '/opt/bitnami/mariadb/bin/mariadb' instead
+Enter password: RootPass1234   
+MariaDB [helm_training]>  ### and we are inside the database
+exit
+mysql -h my-mariadb.database.svc.cluster.local -ucustom_user -p helm_training  ## as custom_user
+mysql: Deprecated program name. It will be removed in a future release, use '/opt/bitnami/mariadb/bin/mariadb' instead
+Enter password:Test1234   ### which we defined on yml file
+MariaDB [helm_training]>    ### this is the way how we can use custom values
+exit > exit
+
+**** Upgrade services using Helm - commands ****
+helm list -A
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+my-mariadb      database        1               2024-04-21 17:29:24.7383524 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
+my-mariadb      default         1               2024-04-21 16:59:33.3144639 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
+helm status my-mariadb -n database   ### there is an info "To upgrade this helm chart:"
+helm repo update
+helm upgrade -n database --values MariaDB_CustomValues.yml my-mariadb bitnami/mariadb --version 18.0.2   ### install changed to upgrade
+kubectl get pods -n database
+helm list -A  ### REVISION is 2 now , if we change the version and apply, then REVISION will be three and CHART version will chnage as well
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+my-mariadb      default         1               2024-04-21 16:59:33.3144639 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
+my-mariadb      database        2               2024-04-21 18:03:09.8249503 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
+
+**** Helm: release records - commands ****
+helm list -A
+kubectl get secrets
+kubectl get secrets -n database
+helm uninstall my-mariadb -n database  ### if you'd like to keep histort then add --keep-history
+helm uninstall my-mariadb
+kubectl get secrets
+helm uninstall -n database my-mariadb
+kubectl get secrets -n database
+
+
