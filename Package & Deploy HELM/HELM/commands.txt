@@ -1,10 +1,10 @@
-**** Helm - demo - commands****
+**** Helm - demo ****
 kubectl config view
 kubectl get nodes
 NAME       STATUS   ROLES           AGE   VERSION
 minikube   Ready    control-plane   27d   v1.28.3
 
-**** Helm work with Repos - commands ****
+**** Helm work with Repos - demo ****
 helm repo list
 Error: no repositories to show   ##output
 helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -23,7 +23,7 @@ helm repo list
 NAME    URL
 bitnami https://charts.bitnami.com/bitnami
 
-**** Helm Search - commands ****
+**** Helm Search - demo ****
 helm search repo mysql
 NAME                    CHART VERSION   APP VERSION     DESCRIPTION   ## output
 bitnami/mysql           10.1.1          8.0.36          MySQL is a fast, reliable, scalable, and easy t...
@@ -41,7 +41,7 @@ helm search hub nginx   ## it will search at https://artifacthub.io/  multiple r
 helm search hub nginx | wc -l   ## git bash or unix-like shell
 helm search hub nginx | Measure-Object -Line   ## powershell 185 in total
 
-**** Execute services using Helm - commands ****
+**** Execute services using Helm - demo ****
 helm repo list
 helm repo add bitnami https://charts.bitnami.com/bitnami   ## add repository which can get from artifacthub.io
 helm install my-redis bitnami/redis --version 19.1.2
@@ -78,7 +78,7 @@ helm list -A   ## for similar result
 helm status my-redis   ### in case you didn't save the redis displayed info, then you can display
 helm status my-redis -n redis   ## I can check with namespace the second deployment info
 
-**** Provide Custom Values to Helm Chart - commands ****
+**** Provide Custom Values to Helm Chart - demo ****
   
 helm list -A
 helm delete my-redis
@@ -112,7 +112,7 @@ Enter password:Test1234   ### which we defined on yml file
 MariaDB [helm_training]>    ### this is the way how we can use custom values
 exit > exit
 
-**** Upgrade services using Helm - commands ****
+**** Upgrade services using Helm - demo ****
 helm list -A
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
 my-mariadb      database        1               2024-04-21 17:29:24.7383524 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
@@ -126,7 +126,7 @@ NAME            NAMESPACE       REVISION        UPDATED                         
 my-mariadb      default         1               2024-04-21 16:59:33.3144639 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
 my-mariadb      database        2               2024-04-21 18:03:09.8249503 +0300 EEST  deployed        mariadb-18.0.2  11.3.2
 
-**** Helm: release records - commands ****
+**** Helm: release records - demo ****
 helm list -A
 kubectl get secrets
 kubectl get secrets -n database
@@ -135,5 +135,51 @@ helm uninstall my-mariadb
 kubectl get secrets
 helm uninstall -n database my-mariadb
 kubectl get secrets -n database
+
+**** Validate resource before deployment - command ****
+helm install -n database --values MariaDB_CustomValues.yml my-mariadb bitnami/mariadb --version 18.0.2 --dry-run
+
+**** Generate K8s Deployable YAML using HELM - command ****
+helm template -n database --values MariaDB_CustomValues.yml my-mariadb bitnami/mariadb --version 18.0.2 # with command template you can generate the yamls
+
+**** Details of HELM Deployment Releases - demo ****
+helm upgrade -n database --values MariaDB_CustomValues.yml my-mariadb bitnami/mariadb --version 18.0.2  ## after version upgrade
+kubectl get secrets -n database
+kubectl get secrets -n database sh.helm.release.v1.my-mariadb.v1 -o yaml   ## helm is storing the revision history of your deployment
+
+**** Get Details of Deployed Deployment - demo ****
+helm get notes my-mariadb -n database
+helm get values my-mariadb -n database  ## you will get user-supplied values which we defined on MariaDB_CustomValues.yml file
+helm get values my-mariadb -n database --revision 1   ## values of individual revision
+helm get manifest my-mariadb -n database --revision 2  ## you can get all values for revision 2 or 1
+
+**** Rollback App using HELM - demo ****
+helm list -A
+kubectl get secrets -n database
+helm history my-mariadb -n database
+helm rollback my-mariadb 1 -n database   ### Rollback to 1
+helm list -A
+helm history my-mariadb -n database
+helm uninstall my-mariadb -n database --keep-history  ## then secrets and history will be available
+helm list -A
+kubectl get secrets -n database
+helm history my-mariadb -n database 
+helm rollback my-mariadb 3 -n database   ### Rollback to 3
+
+**** Wait HELM deployment for successful Installation - demo ****
+helm install my-mysql bitnami/mysql --version 10.1.1 --wait --timeout 20m   ##got the command from artifacthub.ai
+kubectl get pods
+helm list -A
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+my-mysql        default         1               2024-04-22 19:07:07.2241684 +0300 EEST  deployed        mysql-10.1.1    8.0.36  
+helm upgrade my-mysql bitnami/mysql --version 10.1.0 --wait --timeout 20m   # let's upgrade to CHART version 10.1.0
+helm list -A
+helm history my-mysql
+REVISION        UPDATED                         STATUS          CHART           APP VERSION     DESCRIPTION     
+1               Mon Apr 22 19:07:07 2024        superseded      mysql-10.1.1    8.0.36          Install complete
+2               Mon Apr 22 19:15:57 2024        deployed        mysql-10.1.0    8.0.36          Upgrade complete
+helm upgrade my-mysql bitnami/mysql --version 10.1.0 --atomic  ## in case something goes wrong then it will rollback to previous successful revision 
+helm uninstall my-mysql
+
 
 
