@@ -1,0 +1,18 @@
+**** Istio Application - demo ****
+kubectl create -f node-grafana.yml
+kubectl get getaway -n istio-system 
+kubectl describe getaway -n istio-system
+kubectl get vs -n istio-system  ## in order to get virtual service: grafana-vs
+kubectl describe vs -n istio-system
+
+kubectl create -f node-app.yml   ## deploy the app
+kubectl get pods
+kubectl describe pod nodejs-574d8dcc56-2hkd9  ## pod of the one of replicas
+
+kubectl create -f node-istio.yml  ## now we need to deploy node-istio: will deploy the getaway and virtual host
+kubectl get getaway   ## nodejs-gateway
+kubectl get vs 
+kubectl get svc -n istio-system
+### at the Load Balancer info you can copy to dns and check the app or with IP
+### for Grafana dashboard just dns:15031   # which we defined on node-grafana.yml
+
